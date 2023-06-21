@@ -57,12 +57,7 @@ function getRegexFlags(document: vscode.TextDocument): string[] {
   return match ? match[1].split("") : [];
 }
 
-const decorationType = vscode.window.createTextEditorDecorationType({
-  backgroundColor: "yellow",
-  color: "black",
-});
-
-const nonFocusedDecorations: vscode.DecorationOptions[] = [];
+let decorationType: vscode.TextEditorDecorationType | undefined;
 
 function highlightMatches(document: vscode.TextDocument): void {
   // Retrieve the active editor's document text
@@ -74,33 +69,33 @@ function highlightMatches(document: vscode.TextDocument): void {
     if (editor.document === document) {
       return;
     }
-
-    // Clear existing decorations
-    editor.setDecorations(decorationType, nonFocusedDecorations);
+    if (decorationType) editor.setDecorations(decorationType, []);
+    if (!activeText) return;
 
     // Retrieve the non-focused editor's document text
     const nonFocusedText = editor.document.getText();
 
     // Perform your matching and highlighting logic here
-    const nonFocusedMatches = nonFocusedText.match(
-      new RegExp(activeText, "gm")
-    );
-    if (nonFocusedMatches) {
-      const nonFocusedDecorations = nonFocusedMatches.map((match) => {
-        console.log(match);
-        const startPos = editor.document.positionAt(
-          nonFocusedText.indexOf(match)
-        );
-        const endPos = editor.document.positionAt(
-          nonFocusedText.indexOf(match) + match.length
-        );
-        const range = new vscode.Range(startPos, endPos);
-        return { range };
-      });
-
-      // Apply new decorations
-      editor.setDecorations(decorationType, nonFocusedDecorations);
+    const matches: vscode.Range[] = [];
+    const pattern = new RegExp(activeText, "gm");
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(nonFocusedText))) {
+      const startPos = editor.document.positionAt(match.index);
+      const endPos = editor.document.positionAt(match.index + match[0].length);
+      const range = new vscode.Range(startPos, endPos);
+      matches.push(range);
     }
+
+    // Create a decoration type if not already created
+    if (!decorationType) {
+      decorationType = vscode.window.createTextEditorDecorationType({
+        backgroundColor: "yellow",
+        color: "black",
+      });
+    }
+
+    // Apply the decorations to the editor
+    editor.setDecorations(decorationType, matches);
   });
 }
 
