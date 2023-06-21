@@ -16,6 +16,14 @@ function getConfigFlags(): string {
   return config.get("flags") as string;
 }
 
+function checkForRegexFiles(): boolean {
+  for (const editor of vscode.window.visibleTextEditors) {
+    const filename = editor.document.fileName;
+    if (!filename.endsWith(".re")) deactivate();
+  }
+  return false;
+}
+
 export function activate(context: vscode.ExtensionContext) {
   createFlagButtons(context);
   vscode.workspace.onDidChangeTextDocument(
@@ -30,6 +38,8 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
   );
+  vscode.window.onDidChangeActiveTextEditor(checkForRegexFiles);
+  vscode.window.onDidChangeWindowState(checkForRegexFiles);
   if (vscode.window.activeTextEditor)
     highlightMatches(vscode.window.activeTextEditor.document);
 }
@@ -124,4 +134,17 @@ function toggleFlag(flag: string): void {
   button.text = `${states[newState]} ${flag.toUpperCase()}`;
 }
 
-export function deactivate() {}
+export function deactivate() {
+  disposeFlagButtons();
+}
+
+function disposeFlagButtons(): void {
+  for (const key in flagButtons) {
+    if (flagButtons.hasOwnProperty(key)) {
+      const innerMapValue = flagButtons[key];
+      innerMapValue.button.dispose();
+    }
+  }
+  // Clear the flagButtons dictionary
+  Object.keys(flagButtons).forEach((key) => delete flagButtons[key]);
+}
