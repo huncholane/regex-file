@@ -1,6 +1,7 @@
 {
   "name": "regex-file",
   "displayName": "Regex File",
+  "icon": "images/icon.png",
   "description": "regex with custom flag highligheghter",
   "version": "0.0.1",
   "engines": {
