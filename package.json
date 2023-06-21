@@ -9,13 +9,38 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onLanguage:regex"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "regex-file.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "regex-file.showButtons",
+        "title": "Show Buttons"
+      },
+      {
+        "command": "regex-file.openSidebar",
+        "title": "Open Sidebar"
+      },
+      {
+        "command": "regex-file.myCommandButton",
+        "title": "My Command Button"
+      }
+    ],
+    "languages": [
+      {
+        "id": "regex",
+        "aliases": [
+          "Regex"
+        ],
+        "extensions": [
+          ".re"
+        ]
       }
     ]
   },

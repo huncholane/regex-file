@@ -1,26 +1,92 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
+import * as vscode from "vscode";
 
-// This method is called when your extension is activated
-// Your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  const flagButtons = createFlagButtons();
+  context.subscriptions.push(flagButtons);
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "regex-file" is now active!');
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    updateFlagButtons(editor.document);
+  }
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('regex-file.helloWorld', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Hello World from Regex File!');
-	});
+  vscode.window.onDidChangeActiveTextEditor((editor) => {
+    if (editor) {
+      updateFlagButtons(editor.document);
+    }
+  });
 
-	context.subscriptions.push(disposable);
+  vscode.workspace.onDidChangeTextDocument((event) => {
+    updateFlagButtons(event.document);
+  });
 }
 
-// This method is called when your extension is deactivated
+function createFlagButtons(): vscode.Disposable {
+  const buttons = ["g", "i", "m", "s", "u", "y"].map((flag) => {
+    const button = vscode.window.createStatusBarItem(
+      vscode.StatusBarAlignment.Left
+    );
+    button.text = `$(check) ${flag.toUpperCase()}`;
+    button.tooltip = `Toggle ${flag} flag`;
+    button.command = `extension.toggleFlag${flag.toUpperCase()}`;
+    return button;
+  });
+
+  buttons.forEach((button) => button.show());
+
+  const disposables = buttons.map((button) => {
+    let cs = button.command! as string;
+    return vscode.commands.registerCommand(button.command! as string, () => {
+      toggleFlag(cs.slice(-1));
+    });
+  });
+
+  return vscode.Disposable.from(...disposables);
+}
+
+function updateFlagButtons(document: vscode.TextDocument): void {
+  const regexFlags = getRegexFlags(document);
+  const flagButtons = ["g", "i", "m", "s", "u", "y"];
+
+  // flagButtons.forEach((flag) => {
+  //   const button = vscode.window.statusBarItems.find(
+  //     (item) => item.command === `extension.toggleFlag${flag.toUpperCase()}`
+  //   );
+  //   if (button) {
+  //     button.text = regexFlags.includes(flag)
+  //       ? `$(check) ${flag.toUpperCase()}`
+  //       : `$(x) ${flag.toUpperCase()}`;
+  //   }
+  // });
+}
+
+function getRegexFlags(document: vscode.TextDocument): string[] {
+  const regex = /\/.+\/([gimuy]*)/;
+  const match = regex.exec(document.getText());
+  return match ? match[1].split("") : [];
+}
+
+function toggleFlag(flag: string): void {
+  const editor = vscode.window.activeTextEditor;
+  if (editor) {
+    const regex = /\/(.+)\/([gimuy]*)/;
+    const selection = editor.selection;
+    const range = new vscode.Range(selection.start, selection.end);
+    const text = editor.document.getText(range);
+    const match = regex.exec(text);
+    if (match) {
+      const flags = match[2].split("");
+      const index = flags.indexOf(flag);
+      if (index !== -1) {
+        flags.splice(index, 1);
+      } else {
+        flags.push(flag);
+      }
+      const updatedText = `/${match[1]}/${flags.join("")}`;
+      editor.edit((editBuilder) => {
+        editBuilder.replace(range, updatedText);
+      });
+    }
+  }
+}
+
 export function deactivate() {}
