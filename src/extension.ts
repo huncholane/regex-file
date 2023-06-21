@@ -11,9 +11,9 @@ const states: Record<"on" | "off", string> = {
   off: "$(x)",
 };
 
-function getConfigFlags() {
+function getConfigFlags(): string {
   const config = vscode.workspace.getConfiguration("regex-file");
-  return config.get("flags");
+  return config.get("flags") as string;
 }
 
 export function activate(context: vscode.ExtensionContext) {
@@ -38,7 +38,7 @@ function createFlagButtons(context: vscode.ExtensionContext): void {
       vscode.StatusBarAlignment.Left
     );
     let state: "on" | "off" = "off";
-    if ("gm".includes(flag)) state = "on";
+    if (getConfigFlags().includes(flag)) state = "on";
     button.text = `${states[state]} ${flag.toUpperCase()}`;
     button.tooltip = `Toggle ${flag} flag`;
     button.command = `regex.toggleFlag${flag.toUpperCase()}`;
