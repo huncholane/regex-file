@@ -30,6 +30,8 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
   );
+  if (vscode.window.activeTextEditor)
+    highlightMatches(vscode.window.activeTextEditor.document);
 }
 
 function createFlagButtons(context: vscode.ExtensionContext): void {
