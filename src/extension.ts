@@ -1,62 +1,54 @@
 import * as vscode from "vscode";
 
-export function activate(context: vscode.ExtensionContext) {
-  const flagButtons = createFlagButtons();
-  context.subscriptions.push(flagButtons);
-
-  const editor = vscode.window.activeTextEditor;
-  if (editor) {
-    updateFlagButtons(editor.document);
-  }
-
-  vscode.window.onDidChangeActiveTextEditor((editor) => {
-    if (editor) {
-      updateFlagButtons(editor.document);
-    }
-  });
-
-  vscode.workspace.onDidChangeTextDocument((event) => {
-    updateFlagButtons(event.document);
-  });
+interface InnerMapValue {
+  state: "on" | "off";
+  button: vscode.StatusBarItem;
 }
 
-function createFlagButtons(): vscode.Disposable {
-  const buttons = ["g", "i", "m", "s", "u", "y"].map((flag) => {
+const flagButtons: { [key: string]: InnerMapValue } = {};
+const states: Record<"on" | "off", string> = {
+  on: "$(check)",
+  off: "$(x)",
+};
+
+export function activate(context: vscode.ExtensionContext) {
+  createFlagButtons(context);
+  vscode.workspace.onDidChangeTextDocument(
+    (event: vscode.TextDocumentChangeEvent) => {
+      // Check if the changed document is the currently active editor
+      if (
+        vscode.window.activeTextEditor?.document === event.document &&
+        vscode.workspace.textDocuments.length > 1
+      ) {
+        // Call your desired function here
+        highlightMatches(vscode.window.activeTextEditor.document);
+      }
+    }
+  );
+}
+
+function createFlagButtons(context: vscode.ExtensionContext): void {
+  ["g", "i", "m", "s", "u", "y", "x"].forEach((flag) => {
     const button = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left
     );
-    button.text = `$(check) ${flag.toUpperCase()}`;
+    button.text = `${states.on} ${flag.toUpperCase()}`;
     button.tooltip = `Toggle ${flag} flag`;
-    button.command = `extension.toggleFlag${flag.toUpperCase()}`;
-    return button;
+    button.command = `regex.toggleFlag${flag.toUpperCase()}`;
+    button.show();
+    flagButtons[flag] = {
+      state: "on",
+      button,
+    };
+    let disposable = vscode.commands.registerCommand(
+      `regex.toggleFlag${flag.toUpperCase()}`,
+      () => {
+        toggleFlag(flag);
+      }
+    );
+    context.subscriptions.push(button);
+    context.subscriptions.push(disposable);
   });
-
-  buttons.forEach((button) => button.show());
-
-  const disposables = buttons.map((button) => {
-    let cs = button.command! as string;
-    return vscode.commands.registerCommand(button.command! as string, () => {
-      toggleFlag(cs.slice(-1));
-    });
-  });
-
-  return vscode.Disposable.from(...disposables);
-}
-
-function updateFlagButtons(document: vscode.TextDocument): void {
-  const regexFlags = getRegexFlags(document);
-  const flagButtons = ["g", "i", "m", "s", "u", "y"];
-
-  // flagButtons.forEach((flag) => {
-  //   const button = vscode.window.statusBarItems.find(
-  //     (item) => item.command === `extension.toggleFlag${flag.toUpperCase()}`
-  //   );
-  //   if (button) {
-  //     button.text = regexFlags.includes(flag)
-  //       ? `$(check) ${flag.toUpperCase()}`
-  //       : `$(x) ${flag.toUpperCase()}`;
-  //   }
-  // });
 }
 
 function getRegexFlags(document: vscode.TextDocument): string[] {
@@ -65,28 +57,62 @@ function getRegexFlags(document: vscode.TextDocument): string[] {
   return match ? match[1].split("") : [];
 }
 
-function toggleFlag(flag: string): void {
-  const editor = vscode.window.activeTextEditor;
-  if (editor) {
-    const regex = /\/(.+)\/([gimuy]*)/;
-    const selection = editor.selection;
-    const range = new vscode.Range(selection.start, selection.end);
-    const text = editor.document.getText(range);
-    const match = regex.exec(text);
-    if (match) {
-      const flags = match[2].split("");
-      const index = flags.indexOf(flag);
-      if (index !== -1) {
-        flags.splice(index, 1);
-      } else {
-        flags.push(flag);
-      }
-      const updatedText = `/${match[1]}/${flags.join("")}`;
-      editor.edit((editBuilder) => {
-        editBuilder.replace(range, updatedText);
-      });
+const decorationType = vscode.window.createTextEditorDecorationType({
+  backgroundColor: "yellow",
+  color: "black",
+});
+
+const nonFocusedDecorations: vscode.DecorationOptions[] = [];
+
+function highlightMatches(document: vscode.TextDocument): void {
+  // Retrieve the active editor's document text
+  const activeText = document.getText();
+
+  // Iterate over all visible editors
+  vscode.window.visibleTextEditors.forEach((editor) => {
+    // Skip the active editor
+    if (editor.document === document) {
+      return;
     }
-  }
+
+    // Clear existing decorations
+    editor.setDecorations(decorationType, nonFocusedDecorations);
+
+    // Retrieve the non-focused editor's document text
+    const nonFocusedText = editor.document.getText();
+
+    // Perform your matching and highlighting logic here
+    const nonFocusedMatches = nonFocusedText.match(
+      new RegExp(activeText, "gm")
+    );
+    if (nonFocusedMatches) {
+      const nonFocusedDecorations = nonFocusedMatches.map((match) => {
+        console.log(match);
+        const startPos = editor.document.positionAt(
+          nonFocusedText.indexOf(match)
+        );
+        const endPos = editor.document.positionAt(
+          nonFocusedText.indexOf(match) + match.length
+        );
+        const range = new vscode.Range(startPos, endPos);
+        return { range };
+      });
+
+      // Apply new decorations
+      editor.setDecorations(decorationType, nonFocusedDecorations);
+    }
+  });
+}
+
+function toggleFlag(flag: string): void {
+  const button = flagButtons[flag].button;
+  const currentState = flagButtons[flag].state;
+  const newState = currentState === "on" ? "off" : "on";
+
+  flagButtons[flag].state = newState;
+  button.text = `${states[newState]} ${flag.toUpperCase()}`;
+
+  // Perform any additional logic based on the new state
 }
 
 export function deactivate() {}
