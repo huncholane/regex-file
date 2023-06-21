@@ -11,6 +11,11 @@ const states: Record<"on" | "off", string> = {
   off: "$(x)",
 };
 
+function getConfigFlags() {
+  const config = vscode.workspace.getConfiguration("regex-file");
+  return config.get("flags");
+}
+
 export function activate(context: vscode.ExtensionContext) {
   createFlagButtons(context);
   vscode.workspace.onDidChangeTextDocument(
@@ -32,12 +37,14 @@ function createFlagButtons(context: vscode.ExtensionContext): void {
     const button = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left
     );
-    button.text = `${states.on} ${flag.toUpperCase()}`;
+    let state: "on" | "off" = "off";
+    if ("gm".includes(flag)) state = "on";
+    button.text = `${states[state]} ${flag.toUpperCase()}`;
     button.tooltip = `Toggle ${flag} flag`;
     button.command = `regex.toggleFlag${flag.toUpperCase()}`;
     button.show();
     flagButtons[flag] = {
-      state: "on",
+      state,
       button,
     };
     let disposable = vscode.commands.registerCommand(
@@ -51,10 +58,15 @@ function createFlagButtons(context: vscode.ExtensionContext): void {
   });
 }
 
-function getRegexFlags(document: vscode.TextDocument): string[] {
-  const regex = /\/.+\/([gimuy]*)/;
-  const match = regex.exec(document.getText());
-  return match ? match[1].split("") : [];
+function getRegexFlags(): [string, boolean] {
+  let flags = "";
+  let hasX = false;
+  Object.entries(flagButtons).forEach(([flag, info]) => {
+    if (info.state === "on")
+      if (flag === "x") hasX = true;
+      else flags += flag;
+  });
+  return [flags, hasX];
 }
 
 let decorationType: vscode.TextEditorDecorationType | undefined;
@@ -73,11 +85,13 @@ function highlightMatches(document: vscode.TextDocument): void {
     if (!activeText) return;
 
     // Retrieve the non-focused editor's document text
-    const nonFocusedText = editor.document.getText();
+    let nonFocusedText = editor.document.getText();
 
     // Perform your matching and highlighting logic here
     const matches: vscode.Range[] = [];
-    const pattern = new RegExp(activeText, "gm");
+    let [flags, hasX] = getRegexFlags();
+    const pattern = new RegExp(activeText, flags);
+    if (hasX) nonFocusedText = nonFocusedText.replace(/\s/g, "");
     let match: RegExpExecArray | null;
     while ((match = pattern.exec(nonFocusedText))) {
       const startPos = editor.document.positionAt(match.index);
@@ -106,8 +120,6 @@ function toggleFlag(flag: string): void {
 
   flagButtons[flag].state = newState;
   button.text = `${states[newState]} ${flag.toUpperCase()}`;
-
-  // Perform any additional logic based on the new state
 }
 
 export function deactivate() {}

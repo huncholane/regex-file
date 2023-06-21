@@ -42,7 +42,16 @@
           ".re"
         ]
       }
-    ]
+    ],
+    "configuration": {
+      "properties": {
+        "regex-file.flags": {
+          "type": "string",
+          "default": "gm",
+          "description": "Any combination of 'gimsuyx'"
+        }
+      }
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run package",
