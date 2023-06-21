@@ -2,7 +2,7 @@
   "name": "regex-file",
   "displayName": "Regex File",
   "icon": "https://user-images.githubusercontent.com/5418178/175823761-ee7996b9-57be-4abf-be93-0ad25e7f37f0.png",
-  "description": "regex with custom flag highligheghter",
+  "description": "Made a file type for regex that highlights a second file and adds flags to the status bar.",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.79.0"
