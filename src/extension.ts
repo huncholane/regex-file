@@ -38,8 +38,8 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
   );
-  vscode.window.onDidChangeActiveTextEditor(checkForRegexFiles);
-  vscode.window.onDidChangeWindowState(checkForRegexFiles);
+  // vscode.window.onDidChangeActiveTextEditor(checkForRegexFiles);
+  // vscode.window.onDidChangeWindowState(checkForRegexFiles);
   if (vscode.window.activeTextEditor)
     highlightMatches(vscode.window.activeTextEditor.document);
 }
@@ -104,6 +104,7 @@ function highlightMatches(document: vscode.TextDocument): void {
     let [flags, hasX] = getRegexFlags();
     const pattern = new RegExp(activeText, flags);
     if (hasX) nonFocusedText = nonFocusedText.replace(/\s/g, "");
+    console.log("hello");
     let match: RegExpExecArray | null;
     while ((match = pattern.exec(nonFocusedText))) {
       const startPos = editor.document.positionAt(match.index);
