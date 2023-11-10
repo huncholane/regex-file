@@ -94,7 +94,7 @@ let decorationType: vscode.TextEditorDecorationType | undefined;
 
 function highlightMatches(document: vscode.TextDocument): void {
   // Retrieve the active editor's document text
-  const activeText = document.getText();
+  let activeText = document.getText();
 
   // Iterate over all visible editors
   vscode.window.visibleTextEditors.forEach((editor) => {
@@ -115,11 +115,10 @@ function highlightMatches(document: vscode.TextDocument): void {
     // Perform your matching and highlighting logic here
     const matches: vscode.Range[] = [];
     let [flags, hasX] = getRegexFlags();
-    const pattern = new RegExp(activeText, flags);
     if (hasX) {
-      nonFocusedText = nonFocusedText.replace(/\s/g, "");
+      activeText = activeText.replace(/\s/g, "");
     }
-    console.log("hello");
+    const pattern = new RegExp(activeText, flags);
     let match: RegExpExecArray | null;
     while ((match = pattern.exec(nonFocusedText))) {
       const startPos = editor.document.positionAt(match.index);
