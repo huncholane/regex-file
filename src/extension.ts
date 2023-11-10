@@ -19,7 +19,9 @@ function getConfigFlags(): string {
 function checkForRegexFiles(): boolean {
   for (const editor of vscode.window.visibleTextEditors) {
     const filename = editor.document.fileName;
-    if (!filename.endsWith(".re")) deactivate();
+    if (!filename.endsWith(".re")) {
+      deactivate();
+    }
   }
   return false;
 }
@@ -40,8 +42,9 @@ export function activate(context: vscode.ExtensionContext) {
   );
   // vscode.window.onDidChangeActiveTextEditor(checkForRegexFiles);
   // vscode.window.onDidChangeWindowState(checkForRegexFiles);
-  if (vscode.window.activeTextEditor)
+  if (vscode.window.activeTextEditor) {
     highlightMatches(vscode.window.activeTextEditor.document);
+  }
 }
 
 function createFlagButtons(context: vscode.ExtensionContext): void {
@@ -50,7 +53,9 @@ function createFlagButtons(context: vscode.ExtensionContext): void {
       vscode.StatusBarAlignment.Left
     );
     let state: "on" | "off" = "off";
-    if (getConfigFlags().includes(flag)) state = "on";
+    if (getConfigFlags().includes(flag)) {
+      state = "on";
+    }
     button.text = `${states[state]} ${flag.toUpperCase()}`;
     button.tooltip = `Toggle ${flag} flag`;
     button.command = `regex.toggleFlag${flag.toUpperCase()}`;
@@ -74,9 +79,13 @@ function getRegexFlags(): [string, boolean] {
   let flags = "";
   let hasX = false;
   Object.entries(flagButtons).forEach(([flag, info]) => {
-    if (info.state === "on")
-      if (flag === "x") hasX = true;
-      else flags += flag;
+    if (info.state === "on") {
+      if (flag === "x") {
+        hasX = true;
+      } else {
+        flags += flag;
+      }
+    }
   });
   return [flags, hasX];
 }
@@ -93,8 +102,12 @@ function highlightMatches(document: vscode.TextDocument): void {
     if (editor.document === document) {
       return;
     }
-    if (decorationType) editor.setDecorations(decorationType, []);
-    if (!activeText) return;
+    if (decorationType) {
+      editor.setDecorations(decorationType, []);
+    }
+    if (!activeText) {
+      return;
+    }
 
     // Retrieve the non-focused editor's document text
     let nonFocusedText = editor.document.getText();
@@ -103,7 +116,9 @@ function highlightMatches(document: vscode.TextDocument): void {
     const matches: vscode.Range[] = [];
     let [flags, hasX] = getRegexFlags();
     const pattern = new RegExp(activeText, flags);
-    if (hasX) nonFocusedText = nonFocusedText.replace(/\s/g, "");
+    if (hasX) {
+      nonFocusedText = nonFocusedText.replace(/\s/g, "");
+    }
     console.log("hello");
     let match: RegExpExecArray | null;
     while ((match = pattern.exec(nonFocusedText))) {
