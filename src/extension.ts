@@ -211,7 +211,13 @@ function highlightMatches(): void {
   if (hasX) {
     reText = reText.replace(/\s/g, "");
   }
-  const pattern = new RegExp(reText, flags);
+  let pattern;
+  try {
+    pattern = new RegExp(reText, flags);
+  } catch {
+    console.log("invalid pattern");
+    return;
+  }
   const groupMatches: GroupMatchMap = {};
   let match: RegExpExecArray | null;
   let i = 0;
