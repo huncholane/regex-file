@@ -1,6 +1,12 @@
 import * as vscode from "vscode";
 
 /* GLOBAL CONSTANTS */
+const timeout = vscode.workspace
+  .getConfiguration("yourExtension")
+  .get("timeout", 1000);
+const maxMatches = vscode.workspace
+  .getConfiguration("yourExtension")
+  .get("maxMatches", 10000);
 const baseEditorStyle = vscode.window.createTextEditorDecorationType({
   backgroundColor: "yellow",
   color: "black",
@@ -209,9 +215,14 @@ function highlightMatches(): void {
   const groupMatches: GroupMatchMap = {};
   let match: RegExpExecArray | null;
   let i = 0;
+  const startTime = new Date().getTime();
   while ((match = pattern.exec(searchText))) {
-    if (i > 1000) {
-      outputChannel.appendLine("The pattern reached max recursion.");
+    if (i > maxMatches) {
+      outputChannel.appendLine(`Max matches of ${maxMatches} reached.`);
+      break;
+    }
+    if (new Date().getTime() > startTime + 1000) {
+      outputChannel.appendLine(`Timeout of ${timeout} reached.`);
       break;
     }
     updateGroupMatches(textEditor, groupMatches, match);

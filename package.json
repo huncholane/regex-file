@@ -52,6 +52,16 @@
           "type": "string",
           "default": "gm",
           "description": "Any combination of 'gimsuyx'"
+        },
+        "regex-file.timeout": {
+          "type": "number",
+          "default": 500,
+          "description": "Timeout for your extension in milliseconds"
+        },
+        "regex-file.maxMatches": {
+          "type": "number",
+          "default": 10000,
+          "description": "Maximum matches for your extension"
         }
       }
     }
