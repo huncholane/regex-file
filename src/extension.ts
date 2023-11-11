@@ -147,12 +147,10 @@ function updateGroupMatches(
     const groupMatch = match.groups[groupName];
 
     if (groupMatch) {
-      const startPos = textEditor.document.positionAt(
-        match.index + match[0].indexOf(groupMatch)
-      );
-      const endPos = textEditor.document.positionAt(
-        match.index + match[0].indexOf(groupMatch) + groupMatch.length
-      );
+      const startInd = match[0].indexOf(groupMatch);
+      const startPos = textEditor.document.positionAt(match.index + startInd);
+      const endInd = startInd + groupMatch.length;
+      const endPos = textEditor.document.positionAt(match.index + endInd);
       const matchRange = new vscode.Range(startPos, endPos);
 
       if (!groupMatches[groupName]) {
