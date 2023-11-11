@@ -7,6 +7,7 @@ const baseEditorStyle = vscode.window.createTextEditorDecorationType({
 });
 
 /* GLOBAL VARIABLES */
+let textDecorations = [baseEditorStyle];
 let outputChannel: vscode.OutputChannel;
 let lastRegex = "";
 let lastText = "";
@@ -126,6 +127,7 @@ function applyGroupMatchDecorations(
 ) {
   for (const groupName of Object.keys(groupMatches)) {
     const { style, matches } = groupMatches[groupName];
+    textDecorations.push(style);
 
     const decorations: vscode.DecorationOptions[] = matches.map((range) => ({
       range,
@@ -192,6 +194,12 @@ function highlightMatches(): void {
   lastText = searchText;
   lastRegex = reText;
   outputChannel.appendLine("Ready to begin highlighting.");
+
+  // Clear all previous text decorations
+  for (const decoration of textDecorations) {
+    textEditor.setDecorations(decoration, []);
+    textDecorations = [baseEditorStyle];
+  }
 
   // Perform your matching and highlighting logic here
   const matches: vscode.Range[] = [];
