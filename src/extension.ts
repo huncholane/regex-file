@@ -1,8 +1,12 @@
 import * as vscode from "vscode";
+
+/* GLOBAL VARIABLES */
 let outputChannel: vscode.OutputChannel;
 let lastRegex = "";
 let lastText = "";
+let decorationType: vscode.TextEditorDecorationType | undefined;
 
+/* TYPES */
 interface InnerMapValue {
   state: "on" | "off";
   button: vscode.StatusBarItem;
@@ -93,8 +97,6 @@ function getRegexFlags(): [string, boolean] {
   });
   return [flags, hasX];
 }
-
-let decorationType: vscode.TextEditorDecorationType | undefined;
 
 function highlightMatches(): void {
   const reEditor = getReEditor();
