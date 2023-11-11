@@ -1,4 +1,7 @@
 import * as vscode from "vscode";
+let outputChannel: vscode.OutputChannel;
+let lastRegex = "";
+let lastText = "";
 
 interface InnerMapValue {
   state: "on" | "off";
@@ -16,35 +19,36 @@ function getConfigFlags(): string {
   return config.get("flags") as string;
 }
 
-function checkForRegexFiles(): boolean {
-  for (const editor of vscode.window.visibleTextEditors) {
-    const filename = editor.document.fileName;
-    if (!filename.endsWith(".re")) {
-      deactivate();
+function getReEditor(): vscode.TextEditor | undefined {
+  const editors = vscode.window.visibleTextEditors;
+
+  for (const editor of editors) {
+    const fileName = editor.document.fileName;
+    if (fileName.endsWith(".re")) {
+      return editor;
     }
   }
-  return false;
+  console.log("No regex document.");
+}
+
+function getTextEditor(): vscode.TextEditor | undefined {
+  const editors = vscode.window.visibleTextEditors;
+
+  for (const editor of editors) {
+    const fileName = editor.document.fileName;
+    if (!fileName.endsWith(".re")) {
+      return editor;
+    }
+  }
+  console.log("No search document.");
 }
 
 export function activate(context: vscode.ExtensionContext) {
+  outputChannel = vscode.window.createOutputChannel("regex-file");
   createFlagButtons(context);
-  vscode.workspace.onDidChangeTextDocument(
-    (event: vscode.TextDocumentChangeEvent) => {
-      // Check if the changed document is the currently active editor
-      if (
-        vscode.window.activeTextEditor?.document === event.document &&
-        vscode.workspace.textDocuments.length > 1
-      ) {
-        // Call your desired function here
-        highlightMatches(vscode.window.activeTextEditor.document);
-      }
-    }
-  );
-  // vscode.window.onDidChangeActiveTextEditor(checkForRegexFiles);
-  // vscode.window.onDidChangeWindowState(checkForRegexFiles);
-  if (vscode.window.activeTextEditor) {
-    highlightMatches(vscode.window.activeTextEditor.document);
-  }
+  highlightMatches();
+  vscode.window.onDidChangeVisibleTextEditors(highlightMatches);
+  vscode.workspace.onDidChangeTextDocument(highlightMatches);
 }
 
 function createFlagButtons(context: vscode.ExtensionContext): void {
@@ -92,52 +96,60 @@ function getRegexFlags(): [string, boolean] {
 
 let decorationType: vscode.TextEditorDecorationType | undefined;
 
-function highlightMatches(document: vscode.TextDocument): void {
-  // Retrieve the active editor's document text
-  let activeText = document.getText();
+function highlightMatches(): void {
+  const reEditor = getReEditor();
+  const textEditor = getTextEditor();
+  if (!reEditor || !textEditor) {
+    outputChannel.appendLine(
+      "Abort highlighting. Missing reEditor or textEditor."
+    );
+    return;
+  }
+  let reText = reEditor.document.getText();
+  if (!reText) {
+    outputChannel.appendLine("Abort highlighting. No text in the regex file.");
+  }
+  let searchText = textEditor.document.getText();
+  if (searchText === lastText && reText === lastRegex) {
+    return;
+  }
+  lastText = searchText;
+  lastRegex = reText;
+  outputChannel.appendLine("Ready to begin highlighting.");
 
-  // Iterate over all visible editors
-  vscode.window.visibleTextEditors.forEach((editor) => {
-    // Skip the active editor
-    if (editor.document === document) {
-      return;
+  // Perform your matching and highlighting logic here
+  const matches: vscode.Range[] = [];
+  let [flags, hasX] = getRegexFlags();
+  if (hasX) {
+    reText = reText.replace(/\s/g, "");
+  }
+  const pattern = new RegExp(reText, flags);
+  let match: RegExpExecArray | null;
+  let i = 0;
+  while ((match = pattern.exec(searchText))) {
+    if (i > 1000) {
+      outputChannel.appendLine("The pattern reached max recursion.");
+      break;
     }
-    if (decorationType) {
-      editor.setDecorations(decorationType, []);
-    }
-    if (!activeText) {
-      return;
-    }
+    const startPos = textEditor.document.positionAt(match.index);
+    const endPos = textEditor.document.positionAt(
+      match.index + match[0].length
+    );
+    const range = new vscode.Range(startPos, endPos);
+    matches.push(range);
+    i++;
+  }
 
-    // Retrieve the non-focused editor's document text
-    let nonFocusedText = editor.document.getText();
+  // Create a decoration type if not already created
+  if (!decorationType) {
+    decorationType = vscode.window.createTextEditorDecorationType({
+      backgroundColor: "yellow",
+      color: "black",
+    });
+  }
 
-    // Perform your matching and highlighting logic here
-    const matches: vscode.Range[] = [];
-    let [flags, hasX] = getRegexFlags();
-    if (hasX) {
-      activeText = activeText.replace(/\s/g, "");
-    }
-    const pattern = new RegExp(activeText, flags);
-    let match: RegExpExecArray | null;
-    while ((match = pattern.exec(nonFocusedText))) {
-      const startPos = editor.document.positionAt(match.index);
-      const endPos = editor.document.positionAt(match.index + match[0].length);
-      const range = new vscode.Range(startPos, endPos);
-      matches.push(range);
-    }
-
-    // Create a decoration type if not already created
-    if (!decorationType) {
-      decorationType = vscode.window.createTextEditorDecorationType({
-        backgroundColor: "yellow",
-        color: "black",
-      });
-    }
-
-    // Apply the decorations to the editor
-    editor.setDecorations(decorationType, matches);
-  });
+  // Apply the decorations to the editor
+  textEditor.setDecorations(decorationType, matches);
 }
 
 function toggleFlag(flag: string): void {
