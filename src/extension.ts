@@ -1,18 +1,30 @@
 import * as vscode from "vscode";
 
+/* GLOBAL CONSTANTS */
+const baseEditorStyle = vscode.window.createTextEditorDecorationType({
+  backgroundColor: "yellow",
+  color: "black",
+});
+
 /* GLOBAL VARIABLES */
 let outputChannel: vscode.OutputChannel;
 let lastRegex = "";
 let lastText = "";
 let decorationType: vscode.TextEditorDecorationType | undefined;
+const flagButtons: { [key: string]: InnerMapValue } = {};
 
 /* TYPES */
+type GroupMatches = {
+  style: vscode.TextEditorDecorationType;
+  matches: vscode.Range[];
+};
+type GroupMatchMap = {
+  [key: string]: GroupMatches;
+};
 interface InnerMapValue {
   state: "on" | "off";
   button: vscode.StatusBarItem;
 }
-
-const flagButtons: { [key: string]: InnerMapValue } = {};
 const states: Record<"on" | "off", string> = {
   on: "$(check)",
   off: "$(x)",
@@ -21,6 +33,16 @@ const states: Record<"on" | "off", string> = {
 function getConfigFlags(): string {
   const config = vscode.workspace.getConfiguration("regex-file");
   return config.get("flags") as string;
+}
+
+function getRandomColor() {
+  // Generate a random hex color
+  const letters = "0123456789ABCDEF";
+  let color = "#";
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
 }
 
 function getReEditor(): vscode.TextEditor | undefined {
@@ -98,6 +120,58 @@ function getRegexFlags(): [string, boolean] {
   return [flags, hasX];
 }
 
+function applyGroupMatchDecorations(
+  editor: vscode.TextEditor,
+  groupMatches: GroupMatchMap
+) {
+  for (const groupName of Object.keys(groupMatches)) {
+    const { style, matches } = groupMatches[groupName];
+
+    const decorations: vscode.DecorationOptions[] = matches.map((range) => ({
+      range,
+      hoverMessage: `Group: ${groupName}`,
+    }));
+
+    editor.setDecorations(style, decorations);
+  }
+}
+
+function updateGroupMatches(
+  textEditor: vscode.TextEditor,
+  groupMatches: GroupMatchMap,
+  match: RegExpExecArray
+) {
+  for (const groupName in match.groups) {
+    const groupMatch = match.groups[groupName];
+
+    if (groupMatch) {
+      const startPos = textEditor.document.positionAt(
+        match.index + match[0].indexOf(groupMatch)
+      );
+      const endPos = textEditor.document.positionAt(
+        match.index + match[0].indexOf(groupMatch) + groupMatch.length
+      );
+      const matchRange = new vscode.Range(startPos, endPos);
+
+      if (!groupMatches[groupName]) {
+        // Generate a random color for the group
+        const randomColor = getRandomColor();
+
+        // Define a new TextEditorDecorationType for the group with the random color
+        groupMatches[groupName] = {
+          style: vscode.window.createTextEditorDecorationType({
+            backgroundColor: randomColor,
+            color: "black", // You can customize the text color
+          }),
+          matches: [matchRange],
+        };
+      } else {
+        groupMatches[groupName].matches.push(matchRange);
+      }
+    }
+  }
+}
+
 function highlightMatches(): void {
   const reEditor = getReEditor();
   const textEditor = getTextEditor();
@@ -126,6 +200,7 @@ function highlightMatches(): void {
     reText = reText.replace(/\s/g, "");
   }
   const pattern = new RegExp(reText, flags);
+  const groupMatches: GroupMatchMap = {};
   let match: RegExpExecArray | null;
   let i = 0;
   while ((match = pattern.exec(searchText))) {
@@ -133,6 +208,7 @@ function highlightMatches(): void {
       outputChannel.appendLine("The pattern reached max recursion.");
       break;
     }
+    updateGroupMatches(textEditor, groupMatches, match);
     const startPos = textEditor.document.positionAt(match.index);
     const endPos = textEditor.document.positionAt(
       match.index + match[0].length
@@ -142,16 +218,11 @@ function highlightMatches(): void {
     i++;
   }
 
-  // Create a decoration type if not already created
-  if (!decorationType) {
-    decorationType = vscode.window.createTextEditorDecorationType({
-      backgroundColor: "yellow",
-      color: "black",
-    });
-  }
+  // Apply base decorations
+  textEditor.setDecorations(baseEditorStyle, matches);
 
-  // Apply the decorations to the editor
-  textEditor.setDecorations(decorationType, matches);
+  // Apply decorations to the groups
+  applyGroupMatchDecorations(textEditor, groupMatches);
 }
 
 function toggleFlag(flag: string): void {
