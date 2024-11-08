@@ -19,10 +19,6 @@
   "contributes": {
     "commands": [
       {
-        "command": "regex-file.helloWorld",
-        "title": "Hello World"
-      },
-      {
         "command": "regex-file.showButtons",
         "title": "Show Buttons"
       },
@@ -42,8 +38,16 @@
           "Regex"
         ],
         "extensions": [
-          ".re"
+          ".re",
+          ".regex"
         ]
+      }
+    ],
+    "iconThemes": [
+      {
+        "id": "regex-file-icons",
+        "label": "Regex File Icons",
+        "path": "./icon-theme.json"
       }
     ],
     "configuration": {

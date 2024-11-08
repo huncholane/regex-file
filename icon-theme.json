@@ -1,0 +1,15 @@
+{
+  "iconDefinitions": {
+    "regexFileIcon": {
+      "iconPath": "./images/regex-icon.svg"
+    }
+  },
+  "fileExtensions": {
+    "re": "regexFileIcon",
+    "regex": "regexFileIcon"
+  },
+  "fileNames": {
+    ".re": "regexFileIcon",
+    ".regex": "regexFileIcon"
+  }
+}
