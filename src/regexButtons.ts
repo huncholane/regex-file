@@ -1,6 +1,5 @@
 import * as vscode from "vscode";
 import { getConfig } from "./global";
-import { output } from "./output";
 import { highlighter } from "./highlighter";
 
 type FlagChar = "g" | "i" | "m" | "s" | "u" | "y" | "x";
