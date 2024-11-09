@@ -4,8 +4,10 @@ class Output {
   outputChannel: vscode.OutputChannel | undefined;
 
   activate() {
-    this.outputChannel = vscode.window.createOutputChannel("Regex File");
-    this.show();
+    if (!this.outputChannel) {
+      this.outputChannel = vscode.window.createOutputChannel("Regex File");
+      this.show();
+    }
   }
 
   show() {
@@ -27,6 +29,11 @@ class Output {
   log(message: string) {
     this.outputChannel?.appendLine(message);
     console.log(message);
+  }
+
+  deactivate() {
+    this.hide();
+    this.dispose();
   }
 }
 
