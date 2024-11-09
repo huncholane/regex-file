@@ -12,7 +12,6 @@ type HighlightGroup = {
 
 class Highlighter {
   context: vscode.ExtensionContext | undefined;
-  decorations: vscode.TextEditorDecorationType[] = [];
   highlightGroups: { [key: string]: HighlightGroup } = {};
 
   constructor() {}
@@ -22,15 +21,20 @@ class Highlighter {
     this.context = context;
   }
 
+  getDecorationTypes() {
+    return Object.values(this.highlightGroups).map(
+      (group) => group.decorationType
+    );
+  }
+
   reset() {
-    // output.log("Resetting decorations");
-    this.decorations.forEach((decoration) => {
+    output.clear();
+    this.getDecorationTypes().forEach((decoration) => {
+      output.log(`Disposing decoration: ${decoration.key}`);
       decoration.dispose();
     });
     this.highlightGroups = {};
-    this.decorations = [];
     decorationGenerator.reset();
-    output.clear();
   }
 
   clearRanges() {
@@ -44,15 +48,15 @@ class Highlighter {
     range: vscode.Range,
     options: vscode.DecorationRenderOptions = {}
   ) {
+    const decoration = { range, hoverMessage: key };
+    output.log(`Highlighting ${key}`);
+    const decorationType = decorationGenerator.generate(options);
     if (this.highlightGroups[key]) {
-      this.highlightGroups[key].decorations.push({
-        range,
-        hoverMessage: key,
-      });
+      this.highlightGroups[key].decorations.push(decoration);
     } else {
       this.highlightGroups[key] = {
-        decorations: [{ range, hoverMessage: key }],
-        decorationType: decorationGenerator.generate(options),
+        decorations: [decoration],
+        decorationType: decorationType,
       };
     }
   }
@@ -87,7 +91,7 @@ class Highlighter {
       const end = document.positionAt(match.index + match[0].length);
       this.updateOrCreateHighlightGroup("outer", new vscode.Range(start, end));
       for (const groupName in match.groups) {
-        output.log(`Match: ${groupName}`);
+        // output.log(`Match: ${groupName}`);
         const group = match.groups[groupName];
         const start = document.positionAt(
           match.index + match[0].indexOf(group)
