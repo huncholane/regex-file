@@ -48,7 +48,7 @@ class Highlighter {
     options: vscode.DecorationRenderOptions = {}
   ) {
     const decoration = { range, hoverMessage: key };
-    output.log(`Highlighting ${key}`);
+    // output.log(`Highlighting ${key}`);
     const decorationType = decorationGenerator.generate(options);
     if (this.highlightGroups[key]) {
       this.highlightGroups[key].decorations.push(decoration);
@@ -91,19 +91,19 @@ class Highlighter {
       this.updateOrCreateHighlightGroup("match", new vscode.Range(start, end), {
         backgroundColor: "rgba(255, 255, 255, 0.1)",
       });
+
+      let groupIndex = 1;
       for (const groupName in match.groups) {
         // output.log(`Match: ${groupName}`);
-        const group = match.groups[groupName];
-        const start = document.positionAt(
-          match.index + match[0].indexOf(group)
-        );
-        const end = document.positionAt(
-          match.index + match[0].indexOf(group) + group.length
-        );
+        const groupStartIndex = (match as any).indices[groupIndex][0];
+        const groupEndIndex = (match as any).indices[groupIndex][1];
+        const start = document.positionAt(groupStartIndex);
+        const end = document.positionAt(groupEndIndex);
         this.updateOrCreateHighlightGroup(
           groupName,
           new vscode.Range(start, end)
         );
+        groupIndex++;
       }
       i++;
     }

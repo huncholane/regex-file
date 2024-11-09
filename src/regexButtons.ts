@@ -72,7 +72,8 @@ class RegexButtons {
       .map(([key, _]) => key)
       .join("")
       .replace("x", "")
-      .replace("y", "");
+      .replace("y", "")
+      .concat("d");
   }
 
   hasXFlag() {
