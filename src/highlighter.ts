@@ -47,7 +47,9 @@ class Highlighter {
     const highlightGroups: { [key: string]: HighlightGroup } = {
       outer: {
         ranges: [],
-        decoration: this.createDecoration({}),
+        decoration: this.createDecoration({
+          fontStyle: "italic",
+        }),
       },
     };
     let i = 0;
