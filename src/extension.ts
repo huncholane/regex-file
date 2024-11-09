@@ -12,7 +12,7 @@ export function activate(context: vscode.ExtensionContext) {
   vscode.window.onDidChangeActiveTextEditor((editor) => {
     if (editor && editor.document.uri.scheme === "file") {
       if (editor.document.languageId === "regex") {
-        output.log("Regex file opened");
+        // output.log("Regex file opened");
         highlighter.run();
       }
     }
@@ -29,6 +29,6 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-  output.log("Stopping File Regex extension");
+  // output.log("Stopping File Regex extension");
   output.deactivate();
 }

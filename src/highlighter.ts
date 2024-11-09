@@ -17,17 +17,18 @@ class Highlighter {
   constructor() {}
 
   activate(context: vscode.ExtensionContext) {
-    output.log("Highlighter activated");
+    // output.log("Highlighter activated");
     this.context = context;
   }
 
   reset() {
-    output.log("Resetting decorations");
+    // output.log("Resetting decorations");
     this.decorations.forEach((decoration) => {
       decoration.dispose();
     });
     this.decorations = [];
     decorationGenerator.reset();
+    output.clear();
   }
 
   getHighlightGroups(
@@ -46,7 +47,7 @@ class Highlighter {
     const maxMatches = getConfig().get("maxMatches") as number;
     for (const match of matches) {
       if (i >= maxMatches) {
-        break;
+        continue;
       }
       const start = document.positionAt(match.index);
       const end = document.positionAt(match.index + match[0].length);
@@ -56,11 +57,12 @@ class Highlighter {
       });
       i++;
     }
+    output.log(`Found ${i} matches`);
     return highlightGroups;
   }
 
   highlightMatches(regexEditor: vscode.TextEditor, editor: vscode.TextEditor) {
-    output.log(`Highlighting matches in ${editor.document.fileName}`);
+    // output.log(`Highlighting matches in ${editor.document.fileName}`);
     const regex = regexEditor.document.getText();
     const flags = regexButtons.getFlagString();
     const highlightGroups = this.getHighlightGroups(

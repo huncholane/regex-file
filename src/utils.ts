@@ -22,7 +22,7 @@ export function getNonRegexEditors() {
   const editors = vscode.window.visibleTextEditors;
   return editors.filter(
     (editor) =>
-      editor.document.languageId !== "regex" ||
-      editor.document.uri.scheme !== "file"
+      editor.document.languageId !== "regex" &&
+      editor.document.uri.scheme === "file"
   );
 }

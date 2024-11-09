@@ -79,7 +79,7 @@ class RegexButtons {
   }
 
   toggleFlag(flag: Flag) {
-    output.log(`Toggling flag ${flag.char}`);
+    // output.log(`Toggling flag ${flag.char}`);
     flag.state = flag.state === "on" ? "off" : "on";
     this.decorateFlag(flag);
   }
@@ -93,7 +93,7 @@ class RegexButtons {
   }
 
   createButton(flag: Flag) {
-    output.log(`Creating button for ${flag}`);
+    // output.log(`Creating button for ${flag}`);
     flag.button = vscode.window.createStatusBarItem(
       vscode.StatusBarAlignment.Left
     );
@@ -111,14 +111,14 @@ class RegexButtons {
   }
 
   createButtons() {
-    output.log("Creating buttons");
+    // output.log("Creating buttons");
     for (const flag of FLAG_CHARS) {
       this.createButton(flag);
     }
   }
 
   disposeButtons() {
-    output.log("Disposing buttons");
+    // output.log("Disposing buttons");
   }
 
   dispose() {
