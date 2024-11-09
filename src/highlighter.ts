@@ -6,7 +6,7 @@ import decorationGenerator from "./decorationGenerator";
 import { getConfig } from "./global";
 
 type HighlightGroup = {
-  range: vscode.Range;
+  ranges: vscode.Range[];
   decoration: vscode.TextEditorDecorationType;
 };
 
@@ -31,6 +31,12 @@ class Highlighter {
     output.clear();
   }
 
+  createDecoration(options: vscode.DecorationRenderOptions) {
+    const decoration = decorationGenerator.generate(options);
+    this.decorations.push(decoration);
+    return decoration;
+  }
+
   getHighlightGroups(
     regex: string,
     flags: string,
@@ -38,23 +44,23 @@ class Highlighter {
   ) {
     const re = new RegExp(regex, flags);
     const matches = document.getText().matchAll(re);
-    const highlightGroups: HighlightGroup[] = [];
-    const decorationMap: { [key: string]: vscode.TextEditorDecorationType } =
-      {};
-    const outerDecoration = decorationGenerator.generate({ cursor: "pointer" });
-    this.decorations.push(outerDecoration);
+    const highlightGroups: { [key: string]: HighlightGroup } = {
+      outer: {
+        ranges: [],
+        decoration: this.createDecoration({}),
+      },
+    };
     let i = 0;
     const maxMatches = getConfig().get("maxMatches") as number;
     for (const match of matches) {
       if (i >= maxMatches) {
-        continue;
+        break;
       }
       const start = document.positionAt(match.index);
       const end = document.positionAt(match.index + match[0].length);
-      highlightGroups.push({
-        range: new vscode.Range(start, end),
-        decoration: outerDecoration,
-      });
+      if (highlightGroups["outer"].ranges) {
+        highlightGroups["outer"].ranges.push(new vscode.Range(start, end));
+      }
       i++;
     }
     output.log(`Found ${i} matches`);
@@ -70,8 +76,9 @@ class Highlighter {
       flags,
       editor.document
     );
-    for (const group of highlightGroups) {
-      editor.setDecorations(group.decoration, [group.range]);
+    for (const key of Object.keys(highlightGroups)) {
+      const group = highlightGroups[key];
+      editor.setDecorations(group.decoration, group.ranges);
     }
   }
 

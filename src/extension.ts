@@ -17,7 +17,8 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
     if (!editorsContainRegexFile()) {
-      console.log("No regex file opened");
+      highlighter.reset();
+      output.log("No regex file opened");
     }
   });
 
