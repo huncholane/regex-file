@@ -66,6 +66,8 @@ class Highlighter {
 
   matchOnEditor(regex: string, document: vscode.TextDocument) {
     const flags = regexButtons.getFlagString();
+    const timeout = getConfig().get("timeout") as number;
+    const startTime = Date.now();
     if (regexButtons.hasXFlag()) {
       regex = this.applyXFlag(regex);
     }
@@ -80,7 +82,7 @@ class Highlighter {
     let i = 0;
     const maxMatches = getConfig().get("maxMatches") as number;
     for (const match of matches) {
-      if (i >= maxMatches) {
+      if (i >= maxMatches || Date.now() - startTime > timeout) {
         break;
       }
       if (match.index === undefined) {
@@ -111,7 +113,7 @@ class Highlighter {
   }
 
   matchRegexGroups(document: vscode.TextDocument) {
-    const re = /(?<=\<).+?(?=\>)/g;
+    const re = /(?<=\().+?(?=\))/g;
     const matches = document.getText().matchAll(re);
     let i = 0;
     const maxMatches = getConfig().get("maxMatches") as number;
