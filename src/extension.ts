@@ -11,16 +11,13 @@ export function activate(context: vscode.ExtensionContext) {
 
   vscode.window.onDidChangeActiveTextEditor((editor) => {
     if (editor && editor.document.uri.scheme === "file") {
-      if (editor.document.languageId === "regex") {
-        // output.log("Regex file opened");
-        regexButtons.show();
+      if (editorsContainRegexFile()) {
         highlighter.run();
+        regexButtons.show();
+      } else {
+        highlighter.reset();
+        regexButtons.hide();
       }
-    }
-    if (!editorsContainRegexFile()) {
-      highlighter.reset();
-      regexButtons.hide();
-      output.log("No regex file opened");
     }
   });
 

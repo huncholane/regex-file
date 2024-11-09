@@ -13,6 +13,7 @@ type HighlightGroup = {
 class Highlighter {
   context: vscode.ExtensionContext | undefined;
   highlightGroups: { [key: string]: HighlightGroup } = {};
+  forceStop = false;
 
   constructor() {}
 
@@ -65,6 +66,7 @@ class Highlighter {
   }
 
   matchOnEditor(regex: string, document: vscode.TextDocument) {
+    this.forceStop = false;
     const flags = regexButtons.getFlagString();
     const timeout = getConfig().get("timeout") as number;
     const startTime = Date.now();
@@ -82,7 +84,12 @@ class Highlighter {
     let i = 0;
     const maxMatches = getConfig().get("maxMatches") as number;
     for (const match of matches) {
-      if (i >= maxMatches || Date.now() - startTime > timeout) {
+      if (
+        i >= maxMatches ||
+        Date.now() - startTime > timeout ||
+        this.forceStop
+      ) {
+        this.forceStop = false;
         break;
       }
       if (match.index === undefined) {
@@ -148,6 +155,7 @@ class Highlighter {
     this.highlightMatches(regexEditor);
     this.clearRanges();
     const nonRegexEditors = getNonRegexEditors();
+    output.log(`Highlighting ${nonRegexEditors.length} editors`);
     for (const editor of nonRegexEditors) {
       this.matchOnEditor(regexEditor.document.getText(), editor.document);
       this.highlightMatches(editor);
