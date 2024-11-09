@@ -132,6 +132,37 @@ class RegexButtons {
 
   disposeButtons() {
     // output.log("Disposing buttons");
+    for (const flag of Object.values(this.flags)) {
+      if (flag.button) {
+        flag.button.dispose();
+      }
+    }
+  }
+
+  hideButtons() {
+    // output.log("Hiding buttons");
+    for (const flag of Object.values(this.flags)) {
+      if (flag.button) {
+        flag.button.hide();
+      }
+    }
+  }
+
+  hide() {
+    this.hideButtons();
+  }
+
+  showFlagButtons() {
+    // output.log("Showing buttons");
+    for (const flag of Object.values(this.flags)) {
+      if (flag.button) {
+        flag.button.show();
+      }
+    }
+  }
+
+  show() {
+    this.showFlagButtons();
   }
 
   dispose() {
