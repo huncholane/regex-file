@@ -30,7 +30,6 @@ class Highlighter {
   reset() {
     output.clear();
     this.getDecorationTypes().forEach((decoration) => {
-      output.log(`Disposing decoration: ${decoration.key}`);
       decoration.dispose();
     });
     this.highlightGroups = {};
