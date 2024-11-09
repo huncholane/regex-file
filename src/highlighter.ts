@@ -6,8 +6,8 @@ import decorationGenerator from "./decorationGenerator";
 import { getConfig } from "./global";
 
 type HighlightGroup = {
-  ranges: vscode.Range[];
-  decoration: vscode.TextEditorDecorationType;
+  decorations: vscode.DecorationOptions[];
+  decorationType: vscode.TextEditorDecorationType;
 };
 
 class Highlighter {
@@ -35,17 +35,24 @@ class Highlighter {
 
   clearRanges() {
     for (const key of Object.keys(this.highlightGroups)) {
-      this.highlightGroups[key].ranges = [];
+      this.highlightGroups[key].decorations = [];
     }
   }
 
-  updateOrCreateHighlightGroup(key: string, range: vscode.Range) {
+  updateOrCreateHighlightGroup(
+    key: string,
+    range: vscode.Range,
+    options: vscode.DecorationRenderOptions = {}
+  ) {
     if (this.highlightGroups[key]) {
-      this.highlightGroups[key].ranges.push(range);
+      this.highlightGroups[key].decorations.push({
+        range,
+        hoverMessage: key,
+      });
     } else {
       this.highlightGroups[key] = {
-        ranges: [range],
-        decoration: decorationGenerator.generate(),
+        decorations: [{ range, hoverMessage: key }],
+        decorationType: decorationGenerator.generate(options),
       };
     }
   }
@@ -73,16 +80,33 @@ class Highlighter {
       if (i >= maxMatches) {
         break;
       }
+      if (match.index === undefined) {
+        continue;
+      }
       const start = document.positionAt(match.index);
       const end = document.positionAt(match.index + match[0].length);
       this.updateOrCreateHighlightGroup("outer", new vscode.Range(start, end));
+      for (const groupName in match.groups) {
+        output.log(`Match: ${groupName}`);
+        const group = match.groups[groupName];
+        const start = document.positionAt(
+          match.index + match[0].indexOf(group)
+        );
+        const end = document.positionAt(
+          match.index + match[0].indexOf(group) + group.length
+        );
+        this.updateOrCreateHighlightGroup(
+          groupName,
+          new vscode.Range(start, end)
+        );
+      }
       i++;
     }
     output.log(`Found ${i} matches`);
   }
 
   matchRegexGroups(document: vscode.TextDocument) {
-    const re = /(?<=\().+?(?=\))/g;
+    const re = /(?<=\<).+?(?=\>)/g;
     const matches = document.getText().matchAll(re);
     let i = 0;
     const maxMatches = getConfig().get("maxMatches") as number;
@@ -92,16 +116,16 @@ class Highlighter {
       }
       const start = document.positionAt(match.index);
       const end = document.positionAt(match.index + match[0].length);
-      this.updateOrCreateHighlightGroup("inner", new vscode.Range(start, end));
+      this.updateOrCreateHighlightGroup(match[0], new vscode.Range(start, end));
       i++;
     }
   }
 
   highlightMatches(editor: vscode.TextEditor) {
-    // output.log(`Highlighting matches in ${editor.document.fileName}`);
+    // Apply other decorations first
     for (const key of Object.keys(this.highlightGroups)) {
       const group = this.highlightGroups[key];
-      editor.setDecorations(group.decoration, group.ranges);
+      editor.setDecorations(group.decorationType, group.decorations);
     }
   }
 
@@ -113,6 +137,7 @@ class Highlighter {
     }
     this.matchRegexGroups(regexEditor.document);
     this.highlightMatches(regexEditor);
+    this.clearRanges();
     const nonRegexEditors = getNonRegexEditors();
     for (const editor of nonRegexEditors) {
       this.matchOnEditor(regexEditor.document.getText(), editor.document);

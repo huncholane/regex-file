@@ -1,36 +1,36 @@
 import * as vscode from "vscode";
 
 const BACKGROUND_COLORS = [
-  "#FF0000",
-  "#00FF00",
-  "#0000FF",
-  "#FFFF00",
-  "#FF00FF",
-  "#00FFFF",
-  "#FFA500",
-  "#FF1493",
-  "#4B0082",
-  "#EE82EE",
-  "#8A2BE2",
-  "#5F9EA0",
-  "#7FFF00",
-  "#D2691E",
-  "#FF7F50",
-  "#6495ED",
-  "#DC143C",
-  "#00CED1",
-  "#9400D3",
-  "#FFD700",
-  "#ADFF2F",
-  "#FF69B4",
-  "#CD5C5C",
-  "#F0E68C",
-  "#E6E6FA",
-  "#7CFC00",
-  "#20B2AA",
-  "#87CEFA",
-  "#778899",
-  "#FF6347",
+  "#FF0000", // Red
+  "#00FF00", // Lime
+  "#0000FF", // Blue
+  "#FFFF00", // Yellow
+  "#FF00FF", // Magenta
+  "#00FFFF", // Cyan
+  "#FFA500", // Orange
+  "#FF1493", // Deep Pink
+  "#4B0082", // Indigo
+  "#EE82EE", // Violet
+  "#8A2BE2", // Blue Violet
+  "#5F9EA0", // Cadet Blue
+  "#7FFF00", // Chartreuse
+  "#D2691E", // Chocolate
+  "#FF7F50", // Coral
+  "#6495ED", // Cornflower Blue
+  "#DC143C", // Crimson
+  "#00CED1", // Dark Turquoise
+  "#9400D3", // Dark Violet
+  "#FFD700", // Gold
+  "#ADFF2F", // Green Yellow
+  "#FF69B4", // Hot Pink
+  "#CD5C5C", // Indian Red
+  "#F0E68C", // Khaki
+  "#E6E6FA", // Lavender
+  "#7CFC00", // Lawn Green
+  "#20B2AA", // Light Sea Green
+  "#87CEFA", // Light Sky Blue
+  "#FF6347", // Tomato
+  "#32CD32", // Lime Green
 ];
 
 class DecorationGenerator {
@@ -51,6 +51,7 @@ class DecorationGenerator {
   generate(options?: vscode.DecorationRenderOptions) {
     return vscode.window.createTextEditorDecorationType({
       backgroundColor: this.getColor(),
+      color: "black",
       ...options,
     });
   }
