@@ -101,18 +101,14 @@ class Highlighter {
         backgroundColor: "rgba(255, 255, 255, 0.1)",
       });
 
-      let groupIndex = 1;
       for (const groupName in match.groups) {
-        // output.log(`Match: ${groupName}`);
-        const groupStartIndex = (match as any).indices[groupIndex][0];
-        const groupEndIndex = (match as any).indices[groupIndex][1];
-        const start = document.positionAt(groupStartIndex);
-        const end = document.positionAt(groupEndIndex);
+        const groupIndices = (match as any).indices.groups[groupName];
+        const start = document.positionAt(groupIndices[0]);
+        const end = document.positionAt(groupIndices[1]);
         this.updateOrCreateHighlightGroup(
           groupName,
           new vscode.Range(start, end)
         );
-        groupIndex++;
       }
       i++;
     }
