@@ -70,7 +70,17 @@ class RegexButtons {
     return Object.entries(this.flags)
       .filter(([_, flag]) => flag.state === "on")
       .map(([key, _]) => key)
-      .join("");
+      .join("")
+      .replace("x", "")
+      .replace("y", "");
+  }
+
+  hasXFlag() {
+    return this.flags.x.state === "on";
+  }
+
+  hasYFlag() {
+    return this.flags.y.state === "on";
   }
 
   loadConfigFlags() {

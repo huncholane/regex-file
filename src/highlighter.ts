@@ -4,6 +4,7 @@ import { getNonRegexEditors, getRegexEditor } from "./utils";
 import { regexButtons } from "./regexButtons";
 import decorationGenerator from "./decorationGenerator";
 import { getConfig } from "./global";
+import chalk from "chalk";
 
 type HighlightGroup = {
   ranges: vscode.Range[];
@@ -37,11 +38,15 @@ class Highlighter {
     return decoration;
   }
 
-  getHighlightGroups(
-    regex: string,
-    flags: string,
-    document: vscode.TextDocument
-  ) {
+  applyXFlag(regex: string) {
+    return regex.replace(/#.*$/gm, "").replace(/\s+/g, "");
+  }
+
+  getHighlightGroups(regex: string, document: vscode.TextDocument) {
+    const flags = regexButtons.getFlagString();
+    if (regexButtons.hasXFlag()) {
+      regex = this.applyXFlag(regex);
+    }
     const re = new RegExp(regex, flags);
     const matches = document.getText().matchAll(re);
     const highlightGroups: { [key: string]: HighlightGroup } = {
@@ -73,11 +78,7 @@ class Highlighter {
     // output.log(`Highlighting matches in ${editor.document.fileName}`);
     const regex = regexEditor.document.getText();
     const flags = regexButtons.getFlagString();
-    const highlightGroups = this.getHighlightGroups(
-      regex,
-      flags,
-      editor.document
-    );
+    const highlightGroups = this.getHighlightGroups(regex, editor.document);
     for (const key of Object.keys(highlightGroups)) {
       const group = highlightGroups[key];
       editor.setDecorations(group.decoration, group.ranges);
