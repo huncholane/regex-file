@@ -64,7 +64,7 @@
         },
         "regex-file.maxMatches": {
           "type": "number",
-          "default": 10000,
+          "default": 1000,
           "description": "Maximum matches for your extension"
         }
       }

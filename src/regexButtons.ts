@@ -88,6 +88,7 @@ class RegexButtons {
     if (flag.button && flag.state) {
       flag.button.text = `${FLAG_ICONS[flag.state]} ${flag.char.toUpperCase()}`;
       flag.button.color = FLAG_COLORS[flag.state];
+      flag.button.tooltip = flag.tooltip;
     }
   }
 
