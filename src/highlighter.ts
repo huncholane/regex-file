@@ -88,7 +88,9 @@ class Highlighter {
       }
       const start = document.positionAt(match.index);
       const end = document.positionAt(match.index + match[0].length);
-      this.updateOrCreateHighlightGroup("outer", new vscode.Range(start, end));
+      this.updateOrCreateHighlightGroup("match", new vscode.Range(start, end), {
+        backgroundColor: "rgba(255, 255, 255, 0.1)",
+      });
       for (const groupName in match.groups) {
         // output.log(`Match: ${groupName}`);
         const group = match.groups[groupName];
@@ -125,7 +127,6 @@ class Highlighter {
   }
 
   highlightMatches(editor: vscode.TextEditor) {
-    // Apply other decorations first
     for (const key of Object.keys(this.highlightGroups)) {
       const group = this.highlightGroups[key];
       editor.setDecorations(group.decorationType, group.decorations);
