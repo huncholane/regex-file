@@ -3,11 +3,9 @@ import { output } from "./output";
 import { editorsContainRegexFile } from "./utils";
 import { regexButtons } from "./regexButtons";
 import { highlighter } from "./highlighter";
-import * as wasm from "./wasm/pkg/regex_processor";
 
 export async function activate(context: vscode.ExtensionContext) {
   output.activate();
-  output.log("WASM loaded");
   regexButtons.activate(context);
   highlighter.activate(context);
 
