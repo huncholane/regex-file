@@ -2,10 +2,10 @@
   "name": "regex-file",
   "displayName": "Regex File",
   "icon": "images/icon.png",
-  "description": "Made a file type for regex that highlights a second file and adds flags to the status bar.",
+  "description": "Regex File extension for Visual Studio Code.",
   "version": "0.0.1",
   "repository": "git@github.com:huncholane/regex-file.git",
-  "publisher": "Ghost Systems",
+  "publisher": "Hygo",
   "engines": {
     "vscode": "^1.79.0"
   },
