@@ -98,7 +98,7 @@ class Highlighter {
       const start = document.positionAt(match.index);
       const end = document.positionAt(match.index + match[0].length);
       this.updateOrCreateHighlightGroup("match", new vscode.Range(start, end), {
-        backgroundColor: "rgba(255, 255, 255, 0.1)",
+        backgroundColor: "rgba(255, 255, 255, 0.2)",
       });
 
       for (const groupName in match.groups) {
