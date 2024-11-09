@@ -60,12 +60,22 @@ class RegexButtons {
   }
 
   activate(context: vscode.ExtensionContext) {
+    this.loadConfigFlags();
     this.context = context;
     this.createButtons();
   }
 
-  getFlags() {
-    return getConfig().get("flags") as string;
+  getFlagString() {
+    return Object.entries(this.flags)
+      .filter(([_, flag]) => flag.state === "on")
+      .map(([key, _]) => key)
+      .join("");
+  }
+
+  loadConfigFlags() {
+    for (const flag of getConfig().get("flags") as FlagChar[]) {
+      this.flags[flag].state = "on";
+    }
   }
 
   toggleFlag(flag: Flag) {
