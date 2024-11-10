@@ -125,7 +125,7 @@ class Highlighter {
   }
 
   matchRegexGroups(document: vscode.TextDocument) {
-    const re = /(?<=\()\?<.+?(?=\))/g;
+    const re = /(?<=\(\?<).+?(?=\>)/g;
     const matches = document.getText().matchAll(re);
     let i = 0;
     const maxMatches = getConfig().get("maxMatches") as number;
