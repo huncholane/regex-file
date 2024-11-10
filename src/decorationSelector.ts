@@ -51,6 +51,8 @@ class DecorationSelector {
 
   reset() {
     this.currentIndex = 0;
+    for (const decoration of this.decorations) {
+    }
   }
 
   select() {

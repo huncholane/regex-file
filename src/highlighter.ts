@@ -1,6 +1,11 @@
 import * as vscode from "vscode";
 import { output } from "./output";
-import { getNonRegexEditors, getRegexEditor, timeit } from "./utils";
+import {
+  editorsContainRegexFile,
+  getNonRegexEditors,
+  getRegexEditor,
+  timeit,
+} from "./utils";
 import { regexButtons } from "./regexButtons";
 import decorationSelector from "./decorationSelector";
 import { getConfig } from "./global";
@@ -31,6 +36,7 @@ class Highlighter {
   @timeit
   reset() {
     output.clear();
+    this.removeHighlights();
     this.highlightGroups = {};
     decorationSelector.reset();
   }
@@ -140,6 +146,15 @@ class Highlighter {
     for (const key of Object.keys(this.highlightGroups)) {
       const group = this.highlightGroups[key];
       editor.setDecorations(group.decorationType, group.decorations);
+    }
+  }
+
+  removeHighlights() {
+    for (const editor of vscode.window.visibleTextEditors) {
+      for (const key of Object.keys(this.highlightGroups)) {
+        const group = this.highlightGroups[key];
+        editor.setDecorations(group.decorationType, []);
+      }
     }
   }
 
