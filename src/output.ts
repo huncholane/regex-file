@@ -58,7 +58,7 @@ class Output {
       coloredOutput += `${yellow}[warning] ${reset}`;
     }
     coloredOutput += `${whiteBright}${message}${reset}`;
-    console.log(coloredOutput);
+    // console.log(coloredOutput);
 
     // Log to VS Code output channel without colors
     this.outputChannel?.appendLine(message);

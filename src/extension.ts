@@ -3,6 +3,7 @@ import { output } from "./output";
 import { editorsContainRegexFile } from "./utils";
 import { regexButtons } from "./regexButtons";
 import { highlighter } from "./highlighter";
+import decorationSelector from "./decorationSelector";
 
 export function activate(context: vscode.ExtensionContext) {
   output.activate();
@@ -40,6 +41,7 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
+  decorationSelector.dispose();
   highlighter.dispose();
   // console.log("Disposed highlighter");
   regexButtons.dispose();

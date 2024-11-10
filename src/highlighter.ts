@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 import { output } from "./output";
 import { getNonRegexEditors, getRegexEditor, timeit } from "./utils";
 import { regexButtons } from "./regexButtons";
-import decorationGenerator from "./decorationGenerator";
+import decorationSelector from "./decorationSelector";
 import { getConfig } from "./global";
 
 type HighlightGroup = {
@@ -31,11 +31,8 @@ class Highlighter {
   @timeit
   reset() {
     output.clear();
-    this.getDecorationTypes().forEach((decoration) => {
-      decoration.dispose();
-    });
     this.highlightGroups = {};
-    decorationGenerator.reset();
+    decorationSelector.reset();
   }
 
   clearRanges() {
@@ -44,17 +41,13 @@ class Highlighter {
     }
   }
 
-  updateOrCreateHighlightGroup(
-    key: string,
-    range: vscode.Range,
-    options: vscode.DecorationRenderOptions = {}
-  ) {
+  updateOrCreateHighlightGroup(key: string, range: vscode.Range) {
     const decoration = { range, hoverMessage: key };
     // output.log(`Highlighting ${key}`);
-    const decorationType = decorationGenerator.generate(options);
     if (this.highlightGroups[key]) {
       this.highlightGroups[key].decorations.push(decoration);
     } else {
+      const decorationType = decorationSelector.select();
       this.highlightGroups[key] = {
         decorations: [decoration],
         decorationType: decorationType,
@@ -98,9 +91,7 @@ class Highlighter {
       }
       const start = document.positionAt(match.index);
       const end = document.positionAt(match.index + match[0].length);
-      this.updateOrCreateHighlightGroup("match", new vscode.Range(start, end), {
-        backgroundColor: "rgba(255, 255, 255, 0.2)",
-      });
+      this.updateOrCreateHighlightGroup("match", new vscode.Range(start, end));
 
       for (const groupName in match.groups) {
         const anyMatch = match as any;
@@ -158,6 +149,7 @@ class Highlighter {
     if (!regexEditor) {
       return;
     }
+    this.updateOrCreateHighlightGroup("match", new vscode.Range(0, 0, 0, 0));
     this.matchRegexGroups(regexEditor.document);
     this.highlightMatches(regexEditor);
     this.clearRanges();

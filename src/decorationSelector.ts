@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 
 const BACKGROUND_COLORS = [
+  "rgba(255, 255, 255, 0.2)", // White (For outer group)
   "rgba(255, 0, 0, 0.5)", // Red
   "rgba(0, 255, 0, 0.5)", // Lime
   "rgba(0, 0, 255, 0.5)", // Blue
@@ -33,29 +34,37 @@ const BACKGROUND_COLORS = [
   "rgba(50, 205, 50, 0.5)", // Lime Green
 ];
 
-class DecorationGenerator {
-  backgroundColors: string[];
+class DecorationSelector {
+  decorations: vscode.TextEditorDecorationType[] = [];
+  currentIndex = 0;
 
   constructor() {
-    this.backgroundColors = [...BACKGROUND_COLORS];
+    for (const color of BACKGROUND_COLORS) {
+      this.decorations.push(
+        vscode.window.createTextEditorDecorationType({
+          backgroundColor: color,
+          color: "black",
+        })
+      );
+    }
   }
 
   reset() {
-    this.backgroundColors = [...BACKGROUND_COLORS];
+    this.currentIndex = 0;
   }
 
-  getColor() {
-    return this.backgroundColors.pop();
+  select() {
+    const decoration = this.decorations[this.currentIndex];
+    this.currentIndex = (this.currentIndex + 1) % this.decorations.length;
+    return decoration;
   }
 
-  generate(options?: vscode.DecorationRenderOptions) {
-    return vscode.window.createTextEditorDecorationType({
-      backgroundColor: this.getColor(),
-      color: "black",
-      ...options,
-    });
+  dispose() {
+    for (const decoration of this.decorations) {
+      decoration.dispose();
+    }
   }
 }
 
-const decorationGenerator = new DecorationGenerator();
-export default decorationGenerator;
+const decorationSelector = new DecorationSelector();
+export default decorationSelector;
