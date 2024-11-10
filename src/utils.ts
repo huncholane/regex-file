@@ -42,7 +42,6 @@ export function timeit(
   const originalMethod = descriptor.value;
   descriptor.value = function (...args: any[]) {
     const start = new Date().getTime();
-    output.log("Starting " + propertyKey);
     const result = originalMethod.apply(this, args);
     output.log(`Executed ${propertyKey} in ${new Date().getTime() - start}ms`);
     return result;

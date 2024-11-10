@@ -9,27 +9,41 @@ export function activate(context: vscode.ExtensionContext) {
   regexButtons.activate(context);
   highlighter.activate(context);
 
-  vscode.window.onDidChangeActiveTextEditor((editor) => {
-    if (editor && editor.document.uri.scheme === "file") {
-      if (editorsContainRegexFile()) {
-        highlighter.run();
-        regexButtons.show();
-      } else {
-        highlighter.reset();
-        regexButtons.hide();
+  if (editorsContainRegexFile()) {
+    highlighter.run();
+    regexButtons.show();
+  }
+
+  const activeEditorListener = vscode.window.onDidChangeActiveTextEditor(
+    (editor) => {
+      if (editor && editor.document.uri.scheme === "file") {
+        if (editorsContainRegexFile()) {
+          highlighter.run();
+          regexButtons.show();
+        } else {
+          highlighter.reset();
+          regexButtons.hide();
+        }
       }
     }
-  });
+  );
 
-  vscode.workspace.onDidChangeTextDocument((event) => {
-    if (editorsContainRegexFile() && event.document.uri.scheme === "file") {
-      highlighter.run();
+  const textDocumentListener = vscode.workspace.onDidChangeTextDocument(
+    (event) => {
+      if (editorsContainRegexFile() && event.document.uri.scheme === "file") {
+        highlighter.run();
+      }
     }
-  });
+  );
+
+  context.subscriptions.push(activeEditorListener, textDocumentListener);
 }
 
 export function deactivate() {
-  output.dispose();
   highlighter.dispose();
+  // console.log("Disposed highlighter");
   regexButtons.dispose();
+  // console.log("Disposed regexButtons");
+  output.dispose();
+  // console.log("Disposed Output");
 }
