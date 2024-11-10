@@ -4,7 +4,7 @@ import { editorsContainRegexFile } from "./utils";
 import { regexButtons } from "./regexButtons";
 import { highlighter } from "./highlighter";
 
-export async function activate(context: vscode.ExtensionContext) {
+export function activate(context: vscode.ExtensionContext) {
   output.activate();
   regexButtons.activate(context);
   highlighter.activate(context);
@@ -29,6 +29,7 @@ export async function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-  // output.log("Stopping File Regex extension");
-  output.deactivate();
+  output.dispose();
+  highlighter.dispose();
+  regexButtons.dispose();
 }

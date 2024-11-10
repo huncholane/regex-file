@@ -102,13 +102,22 @@ class Highlighter {
       });
 
       for (const groupName in match.groups) {
-        const groupIndices = (match as any).indices.groups[groupName];
-        const start = document.positionAt(groupIndices[0]);
-        const end = document.positionAt(groupIndices[1]);
-        this.updateOrCreateHighlightGroup(
-          groupName,
-          new vscode.Range(start, end)
-        );
+        const anyMatch = match as any;
+        if (
+          anyMatch.indices &&
+          anyMatch.indices.groups &&
+          anyMatch.indices.groups[groupName]
+        ) {
+          const groupIndices = anyMatch.indices.groups[groupName];
+          const start = document.positionAt(groupIndices[0]);
+          const end = document.positionAt(groupIndices[1]);
+          this.updateOrCreateHighlightGroup(
+            groupName,
+            new vscode.Range(start, end)
+          );
+        } else {
+          // output.log(groupName);
+        }
       }
       i++;
     }
@@ -116,7 +125,7 @@ class Highlighter {
   }
 
   matchRegexGroups(document: vscode.TextDocument) {
-    const re = /(?<=\().+?(?=\))/g;
+    const re = /(?<=\()\?<.+?(?=\))/g;
     const matches = document.getText().matchAll(re);
     let i = 0;
     const maxMatches = getConfig().get("maxMatches") as number;
@@ -156,6 +165,10 @@ class Highlighter {
       this.matchOnEditor(regexEditor.document.getText(), editor.document);
       this.highlightMatches(editor);
     }
+  }
+
+  dispose() {
+    this.reset();
   }
 }
 
