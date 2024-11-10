@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { output } from "./output";
-import { getNonRegexEditors, getRegexEditor } from "./utils";
+import { getNonRegexEditors, getRegexEditor, timeit } from "./utils";
 import { regexButtons } from "./regexButtons";
 import decorationGenerator from "./decorationGenerator";
 import { getConfig } from "./global";
@@ -28,6 +28,7 @@ class Highlighter {
     );
   }
 
+  @timeit
   reset() {
     output.clear();
     this.getDecorationTypes().forEach((decoration) => {
@@ -143,6 +144,7 @@ class Highlighter {
     }
   }
 
+  @timeit
   highlightMatches(editor: vscode.TextEditor) {
     for (const key of Object.keys(this.highlightGroups)) {
       const group = this.highlightGroups[key];
